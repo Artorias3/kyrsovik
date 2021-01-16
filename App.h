@@ -1,49 +1,23 @@
 #pragma once
-#include "Image.h"
+#include "GameWindow.h"
+#include "MenuWindow.h"
+
 
 class App
 {
 private:
-	SDL_Window *mainwind;
-#ifdef _SURFACES_
-	SDL_Surface *mainsurf;
-#elif defined _TEXTURES_
-	SDL_Renderer *mainrend;
-#endif
+	MenuWindow *mainMenu;
+	MenuWindow *optionsMenu;
+	MenuWindow *pauseMenu;
 
-	SDL_Point *mousepos;
-	Textures *texture;
-	
-	int *cells;
-	int stroke;
-
-	bool running;
-	bool iswin;
-	bool isklick;
+	GameWindow *gameWindow;
 public:
 	App() 
 	{
-		mainwind = nullptr;
-#ifdef _SURFACES_
-		mainsurf = nullptr;
-#elif defined _TEXTURES_
-		mainrend = nullptr;
-#endif
-		mousepos = nullptr;
-		texture = nullptr;
-		cells = nullptr;
-		
-		running = true;
-		iswin = false;
-		isklick = false;
+		mainMenu = nullptr;
+		optionsMenu = nullptr;
+		pauseMenu = nullptr;
+		gameWindow = nullptr;
 	}
-	~App() {}
-
 	int Execute();
-
-	bool Init();
-	void Event(SDL_Event *event);
-	void Compute();
-	void Render();
-	void Quit();
 };
