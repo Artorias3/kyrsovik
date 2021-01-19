@@ -33,17 +33,19 @@ void Window::Event(SDL_Event *event)
 		running = false;
 		break;
 	case SDL_MOUSEBUTTONUP:
-		switch (event->button.button)
+		if (event->button.button == SDL_BUTTON_LEFT)
 		{
-		case SDL_BUTTON_LEFT:
-			mousepos->x = event->button.x;
-			mousepos->y = event->button.y;
+			mousepos.x = event->button.x;
+			mousepos.y = event->button.y;
 			isklick = true;
 		}
-		break;
 	case SDL_MOUSEMOTION:
-		mousepos->x = event->motion.x;
-		mousepos->y = event->motion.y;
+		mousepos.x = event->motion.x;
+		mousepos.y = event->motion.y;
+	case SDL_KEYDOWN:
+		if (event->key.keysym.sym == SDLK_ESCAPE)
+			escape = true;
+		break;
 	default:
 		break;
 	}

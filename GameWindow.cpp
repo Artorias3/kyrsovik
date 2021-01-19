@@ -1,274 +1,228 @@
 #include "GameWindow.h"
 
-int GameWindow::Execute()
+GameWindow::GameWindow(int _size) : Window()
 {
-	try
-	{
-		Init();
-	}
-	catch (char* message)
-	{
-		// Вывод MessageBox с сообщением об ошибке
-		return 1;
-	}
+	mesh = nullptr;
+	fpsign = nullptr;
+	spsign = nullptr;
+	smallfpsign = nullptr;
+	smallspsign = nullptr;
+	bluedot = nullptr;
+	reddot = nullptr;
+	player = nullptr;
+	enemy = nullptr;
 
-	// выбираем кто ходит первым
+	cells = nullptr;
+	size = _size;
+	iswin = false;
+
 	srand(time(NULL));
 	stroke = 1 + rand() % 2;
-	//cells = new int[9]();
 
-	texture = new Textures;
-
-	mousepos = new SDL_Point;
-	mousepos->x = 0;
-	mousepos->y = 0;
-
-
-	SDL_Event event;
-	while (running)
+	mesh = new Image**[size];
+	cells = new int*[size];
+	for (int i = 0; i < size; i++)
 	{
-		while (SDL_PollEvent(&event))
-		{
-			Event(&event);
-		}
-		Compute();
-		Render();
+		mesh[i] = new Image*[size];
+		cells[i] = new int[size];
+		for (int j = 0; j < size; j++)
+			cells[i][j] = FREE;
 	}
-
-	delete texture;
-	texture = nullptr;
-	delete[] cells;
-	cells = nullptr;
-	delete mousepos;
-	mousepos = nullptr;
-
-	Quit();
-	return 0;
 }
 
-void GameWindow::Compute()
+GameWindow::GameWindow(int _size, int **_cells, int _stroke)
+{
+	mesh = nullptr;
+	fpsign = nullptr;
+	spsign = nullptr;
+	smallfpsign = nullptr;
+	smallspsign = nullptr;
+	bluedot = nullptr;
+	reddot = nullptr;
+	player = nullptr;
+	enemy = nullptr;
+
+	cells = nullptr;
+	size = _size;
+	iswin = false;
+	stroke = _stroke;
+
+	mesh = new Image**[size];
+	cells = new int*[size];
+	for (int i = 0; i < size; i++)
+	{
+		mesh[i] = new Image*[size];
+		cells[i] = new int[size];
+		for (int j = 0; j < size; j++)
+			cells[i][j] = _cells[i][j];
+	}
+}
+
+GameWindow::~GameWindow()
+{
+	if (mesh != nullptr)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+				if (mesh[i][j] != nullptr)
+					delete mesh[i][j];
+			delete[] mesh[i];
+		}
+		delete[] mesh;
+	}
+	if (fpsign != nullptr) delete fpsign;
+	if (spsign != nullptr) delete spsign;
+	if (smallfpsign != nullptr) delete smallfpsign;
+	if (smallspsign != nullptr) delete smallspsign;
+	if (bluedot != nullptr) delete bluedot;
+	if (reddot != nullptr) delete reddot;
+	if (player != nullptr) delete player;
+	if (enemy != nullptr) delete enemy;
+	
+	if (cells != nullptr)
+	{
+		for (int i = 0; i < size; i++)
+			delete[] cells[i];
+		delete[] cells;
+	}
+
+	Quit();
+}
+
+void GameWindow::LoadTextures()
+{
+	SDL_SetWindowSize(mainwind, 110 * size + 50, 110 * size + 190);
+
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			mesh[i][j] = new Image();
+			mesh[i][j]->LoadImage("Images\\Mesh.png", mainrend);
+			mesh[i][j]->SetRect(20 + i * 110, 20 + j * 110, 120, 120);
+		}
+	}
+
+	fpsign = new Image();
+	spsign = new Image();
+	smallfpsign = new Image();
+	smallspsign = new Image();
+	bluedot = new Image();
+	reddot = new Image();
+	player = new Image();
+	enemy = new Image();
+
+	if (stroke == FIRSTPLAYER)
+		fpsign->LoadImage("Images\\BlueCross.png", mainrend);
+	else
+		fpsign->LoadImage("Images\\BlueNull.png", mainrend);
+	fpsign->SetRect(0, 0, 100, 100);
+
+	if (stroke == SECONDPLAYER)
+		spsign->LoadImage("Images\\RedCross.png", mainrend);
+	else 
+		spsign->LoadImage("Images\\RedNull.png", mainrend);
+	spsign->SetRect(0, 0, 100, 100);
+	
+	if (stroke == FIRSTPLAYER)
+		smallfpsign->LoadImage("Images\\BlueSmallCross.png", mainrend);
+	else
+		smallfpsign->LoadImage("Images\\BlueSmallNull.png", mainrend);
+	smallfpsign->SetRect(300, 57 + size * 110, 39, 39);
+	
+	if (stroke == SECONDPLAYER)
+		smallspsign->LoadImage("Images\\RedSmallCross.png", mainrend);
+	else
+		smallspsign->LoadImage("Images\\RedSmallNull.png", mainrend);
+	smallspsign->SetRect(300, 127 + size * 110, 39, 39);
+	
+	
+	bluedot->LoadImage("Images\\BlueDot.png", mainrend);
+	bluedot->SetRect(85, 68 + size * 110, 15, 15);
+
+	reddot->LoadImage("Images\\RedDot.png", mainrend);
+	reddot->SetRect(85, 138 + size * 110, 15, 15);
+
+	player->LoadImage("Images\\Player1.png", mainrend);
+	player->SetRect(100, 50 + size * 110, 50, 200);
+
+	enemy->LoadImage("Images\\Player2.png", mainrend);
+	enemy->SetRect(100, 120 + size * 110, 50, 200);
+}
+
+int GameWindow::Compute()
 {
 	// проверяем было ли нажатие на новую область
 	// если было, то ставим в массив клеток поля соответствующий знак и передаем ход следующему игроку
 	// если небыло, то проходим дальше без изменений
+	if (escape)
+	{
+		isklick = false;
+		escape = false;
+		return ESCAPE;
+	}
 	if (isklick)
 	{
-		if (mousepos->x >= 40 && mousepos->x <= 139)
-		{
-			if (mousepos->y >= 40 && mousepos->y <= 139)
-			{
-				if (cells[0] == 0)
-				{
-					cells[0] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-			else if (mousepos->y >= 150 && mousepos->y <= 249)
-			{
-				if (cells[3] == 0)
-				{
-					cells[3] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-			else if (mousepos->y >= 260 && mousepos->y <= 359)
-			{
-				if (cells[6] == 0)
-				{
-					cells[6] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-		}
-		else if (mousepos->x >= 150 && mousepos->x <= 249)
-		{
-			if (mousepos->y >= 40 && mousepos->y <= 139)
-			{
-				if (cells[1] == 0)
-				{
-					cells[1] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-			else if (mousepos->y >= 150 && mousepos->y <= 249)
-			{
-				if (cells[4] == 0)
-				{
-					cells[4] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-			else if (mousepos->y >= 260 && mousepos->y <= 359)
-			{
-				if (cells[7] == 0)
-				{
-					cells[7] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-		}
-		else if (mousepos->x >= 260 && mousepos->x <= 359)
-		{
-			if (mousepos->y >= 40 && mousepos->y <= 139)
-			{
-				if (cells[2] == 0)
-				{
-					cells[2] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-			else if (mousepos->y >= 150 && mousepos->y <= 249)
-			{
-				if (cells[5] == 0)
-				{
-					cells[5] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-			else if (mousepos->y >= 260 && mousepos->y <= 359)
-			{
-				if (cells[8] == 0)
-				{
-					cells[8] = stroke;
-					stroke = (stroke == 1) ? 2 : 1;
-				}
-			}
-		}
 		isklick = false;
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+			{
+				if (mesh[i][j]->isCursorHit(mousepos.x, mousepos.y))
+				{
+					if (cells[i][j] == FREE)
+					{
+						cells[i][j] = stroke;
+						return TURNREADY;
+					}
+				}
+			}
+		}
 	}
 
-	// Если в каком-то ряду есть выйгрышная комбинация
-	if ((cells[0] == cells[1] && cells[0] == cells[2] && cells[0] != 0) ||
-		(cells[3] == cells[4] && cells[3] == cells[5] && cells[3] != 0) ||
-		(cells[6] == cells[7] && cells[6] == cells[8] && cells[6] != 0))
-	{
-		if (cells[0] == cells[1] && cells[0] == cells[2])
-			texture->winline->SetRect(44, 86, 8, 312);
-		else if (cells[3] == cells[4] && cells[3] == cells[5])
-			texture->winline->SetRect(44, 196, 8, 312);
-		else
-			texture->winline->SetRect(44, 306, 8, 312);
 
-		if (stroke == 1)
-		{
-			texture->winline->LoadImage("Images\\RedHorisontalLine.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player2win.png", mainrend);
-		}
-		else
-		{
-			texture->winline->LoadImage("Images\\BlueHorisontalLine.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player1win.png", mainrend);
-		}
-		iswin = true;
-	}
-	// Если в каком-то из столбцов есть выйгрышная комбинация
-	else if ((cells[0] == cells[3] && cells[0] == cells[6] && cells[0] != 0) ||
-		(cells[1] == cells[4] && cells[1] == cells[7] && cells[1] != 0) ||
-		(cells[2] == cells[5] && cells[2] == cells[8] && cells[2] != 0))
-	{
-		if (cells[0] == cells[3] && cells[0] == cells[6])
-			texture->winline->SetRect(86, 44, 312, 8);
-		else if (cells[1] == cells[4] && cells[1] == cells[7])
-			texture->winline->SetRect(196, 44, 312, 8);
-		else
-			texture->winline->SetRect(306, 44, 312, 8);
 
-		if (stroke == 1)
-		{
-			texture->winline->LoadImage("Images\\RedVerticalLine.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player2win.png", mainrend);
-		}
-		else
-		{
-			texture->winline->LoadImage("Images\\BlueVerticalLine.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player1win.png", mainrend);
-		}
-		iswin = true;
-	}
-	// Если выйгрышная комбинация на главной диагонали
-	else if (cells[0] == cells[4] && cells[0] == cells[8] && cells[0] != 0)
-	{
-		texture->winline->SetRect(40, 40, 320, 320);
-		if (stroke == 1)
-		{
-			texture->winline->LoadImage("Images\\RedSlash.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player2win.png", mainrend);
-		}
-		else
-		{
-			texture->winline->LoadImage("Images\\BlueSlash.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player1win.png", mainrend);
-		}
-		iswin = true;
-	}
-	// если выйгрышная комбинация на побочной диагонали
-	else if (cells[2] == cells[4] && cells[2] == cells[6] && cells[2] != 0)
-	{
-		texture->winline->SetRect(40, 40, 320, 320);
-		if (stroke == 1)
-		{
-			texture->winline->LoadImage("Images\\RedBackslash.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player2win.png", mainrend);
-		}
-		else
-		{
-			texture->winline->LoadImage("Images\\BlueBackslash.png", mainrend);
-			texture->winmessage->LoadImage("Images\\Player1win.png", mainrend);
-		}
-		iswin = true;
-	}
-	else if (cells[0] != 0 && cells[1] != 0 && cells[2] != 0 &&
-		cells[3] != 0 && cells[4] != 0 && cells[5] != 0 &&
-		cells[6] != 0 && cells[7] != 0 && cells[8] != 0)
-	{
-		texture->winline->SetRect(40, 40, 320, 320);
-		texture->winline->LoadImage("Images\\RedBackslash.png", mainrend);
-		SDL_SetTextureAlphaMod(texture->winline->GetTexture(), 0x00);
-		texture->winmessage->LoadImage("Images\\Draw.png", mainrend);
-		iswin = true;
-	}
-
-	if (iswin)
-		running = false;
+	return 0;
 }
 
 void GameWindow::Render()
 {
+	SDL_SetRenderDrawColor(mainrend, 0xff, 0xff, 0xff, 0xff);
 	SDL_RenderClear(mainrend);
-	//SDL_RenderCopy(mainrend, texture->mainfield->GetTexture(), NULL, texture->mainfield->GetRect());
-	SDL_RenderCopy(mainrend, texture->smallfpsign->GetTexture(), NULL, texture->smallfpsign->GetRect());
-	SDL_RenderCopy(mainrend, texture->smallspsign->GetTexture(), NULL, texture->smallspsign->GetRect());
 
-	for (int y = 40, i = 0; y <= 260; y += 110)
-		for (int x = 40; x <= 260; x += 110, i++)
-			if (cells[i] == 1)
-			{
-				SDL_Rect *tmp = texture->fpsign->GetRect();
-				tmp->x = x;
-				tmp->y = y;
-				SDL_RenderCopy(mainrend, texture->fpsign->GetTexture(), NULL, tmp);
-			}
-			else if (cells[i] == 2)
-			{
-				SDL_Rect *tmp = texture->spsign->GetRect();
-				tmp->x = x;
-				tmp->y = y;
-				SDL_RenderCopy(mainrend, texture->spsign->GetTexture(), NULL, tmp);
-			}
-
-	if (stroke == 1)
-		SDL_RenderCopy(mainrend, texture->bluedot->GetTexture(), NULL, texture->bluedot->GetRect());
-	else
-		SDL_RenderCopy(mainrend, texture->reddot->GetTexture(), NULL, texture->reddot->GetRect());
-	SDL_RenderPresent(mainrend);
-
-	if (iswin)
+	for (int i = 0; i < size; i++)
 	{
-		SDL_RenderCopy(mainrend, texture->winline->GetTexture(), NULL, texture->winline->GetRect());
-		SDL_RenderPresent(mainrend);
-		SDL_Delay(1500);
-		SDL_RenderCopy(mainrend, texture->winmessage->GetTexture(), NULL, texture->winmessage->GetRect());
-		SDL_RenderPresent(mainrend);
-		SDL_Delay(5000);
+		for (int j = 0; j < size; j++)
+		{
+			SDL_RenderCopy(mainrend, mesh[i][j]->GetTexture(), NULL, mesh[i][j]->GetRect());
+
+			if (cells[i][j] == FIRSTPLAYER)
+			{
+				fpsign->SetRect(30 + i * 110, 30 + j * 110, 100, 100);
+				SDL_RenderCopy(mainrend, fpsign->GetTexture(), NULL, fpsign->GetRect());
+			}
+			else if (cells[i][j] == SECONDPLAYER)
+			{
+				spsign->SetRect(30 + i * 110, 30 + j * 110, 100, 100);
+				SDL_RenderCopy(mainrend, spsign->GetTexture(), NULL, spsign->GetRect());
+			}
+		}
 	}
+
+	if (stroke == FIRSTPLAYER) SDL_RenderCopy(mainrend, bluedot->GetTexture(), NULL, bluedot->GetRect());
+	else SDL_RenderCopy(mainrend, reddot->GetTexture(), NULL, reddot->GetRect());
+
+	SDL_RenderCopy(mainrend, player->GetTexture(), NULL, player->GetRect());
+	SDL_RenderCopy(mainrend, enemy->GetTexture(), NULL, enemy->GetRect());
+	SDL_RenderCopy(mainrend, smallfpsign->GetTexture(), NULL, smallfpsign->GetRect());
+	SDL_RenderCopy(mainrend, smallspsign->GetTexture(), NULL, smallspsign->GetRect());
+
+	SDL_RenderPresent(mainrend);
+}
+
+void GameWindow::changeStroke()
+{
+	if (stroke == FIRSTPLAYER) stroke = SECONDPLAYER;
+	else stroke = FIRSTPLAYER;
 }

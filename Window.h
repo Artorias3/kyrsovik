@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Textures.h"
+#include "Image.h"
 
 #define MAINMENU 1
 #define OPTIONSMENU 2
@@ -12,21 +12,27 @@ protected:
 	SDL_Window *mainwind;
 	SDL_Renderer *mainrend;
 
-	SDL_Point *mousepos;
+	SDL_Point mousepos;
 
 	bool running;
 	bool isklick;
+	bool escape;
 public:
 	Window()
 	{
 		mainwind = nullptr;
 		mainrend = nullptr;
-		mousepos = nullptr;
 
 		running = true;
 		isklick = false;
+		escape = false;
+		mousepos.x = 0;
+		mousepos.y = 0;
 	}
-	~Window() { if (mousepos != nullptr) delete mousepos; Quit(); }
+	~Window() { Quit(); }
+
+	bool isRunning() { return running; }
+	void downRunning() { running = false; }
 
 	virtual void Init();
 	virtual void Event(SDL_Event *event);

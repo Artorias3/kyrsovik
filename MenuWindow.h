@@ -9,7 +9,7 @@
 #define SMALLFIELD 5
 #define MEDIUMFIELD 6
 #define LARGEFIELD 7
-#define CONTINUE 8;
+#define CONTINUE 8
 
 class MenuWindow : public Window
 {
@@ -22,8 +22,6 @@ public:
 	~MenuWindow() { if (buttons != nullptr) delete[] buttons; }
 
 	void LoadTextures();
-
-	int Execute();
 
 	int Compute();
 	void Render();
