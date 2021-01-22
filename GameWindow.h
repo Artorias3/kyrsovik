@@ -23,18 +23,18 @@ private:
 	Image *reddot;
 	Image *player;
 	Image *enemy;
-	
+	Image *endmessage;
+
 	int **cells;
 	int stroke;
 	int size;
-
-	bool iswin;
 public:
 	GameWindow(int _size);
 	GameWindow(int _size, int **_cells, int _stroke);
 	~GameWindow();
 
 	void LoadTextures();
+	void LoadEndMessage(int type);
 
 	int Compute();
 	void Render();
@@ -43,4 +43,7 @@ public:
 	int getCell(int i, int j) { return cells[i][j]; }
 	int getStroke() { return stroke; }
 	void changeStroke();
+
+	bool isWin();
+	bool isDraw();
 };

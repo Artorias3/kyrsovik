@@ -11,10 +11,10 @@ GameWindow::GameWindow(int _size) : Window()
 	reddot = nullptr;
 	player = nullptr;
 	enemy = nullptr;
+	endmessage = nullptr;
 
 	cells = nullptr;
 	size = _size;
-	iswin = false;
 
 	srand(time(NULL));
 	stroke = 1 + rand() % 2;
@@ -41,10 +41,10 @@ GameWindow::GameWindow(int _size, int **_cells, int _stroke)
 	reddot = nullptr;
 	player = nullptr;
 	enemy = nullptr;
+	endmessage = nullptr;
 
 	cells = nullptr;
 	size = _size;
-	iswin = false;
 	stroke = _stroke;
 
 	mesh = new Image**[size];
@@ -79,7 +79,8 @@ GameWindow::~GameWindow()
 	if (reddot != nullptr) delete reddot;
 	if (player != nullptr) delete player;
 	if (enemy != nullptr) delete enemy;
-	
+	if (endmessage != nullptr) delete endmessage;
+
 	if (cells != nullptr)
 	{
 		for (int i = 0; i < size; i++)
@@ -151,6 +152,20 @@ void GameWindow::LoadTextures()
 	enemy->SetRect(100, 120 + size * 110, 50, 200);
 }
 
+void GameWindow::LoadEndMessage(int type)
+{
+	endmessage = new Image();
+
+	if (type == FPWIN)
+		endmessage->LoadImage("Images\\Player1win.png", mainrend);
+	else if (type == SPWIN)
+		endmessage->LoadImage("Images\\Player2win.png", mainrend);
+	else
+		endmessage->LoadImage("Images\\Draw.png", mainrend);
+	
+	endmessage->SetRect((110 * size + 50) / 2 - 125, (110 * size + 190) / 2 - 75, 150, 250);
+}
+
 int GameWindow::Compute()
 {
 	// проверяем было ли нажатие на новую область
@@ -218,11 +233,132 @@ void GameWindow::Render()
 	SDL_RenderCopy(mainrend, smallfpsign->GetTexture(), NULL, smallfpsign->GetRect());
 	SDL_RenderCopy(mainrend, smallspsign->GetTexture(), NULL, smallspsign->GetRect());
 
+	if (endmessage != nullptr)
+		SDL_RenderCopy(mainrend, endmessage->GetTexture(), NULL, endmessage->GetRect());
+
 	SDL_RenderPresent(mainrend);
+
+	if (endmessage != nullptr)
+		SDL_Delay(5000);
 }
 
 void GameWindow::changeStroke()
 {
 	if (stroke == FIRSTPLAYER) stroke = SECONDPLAYER;
 	else stroke = FIRSTPLAYER;
+}
+
+bool GameWindow::isWin()
+{
+	int num = 0;
+	if (size == 3)
+		num = 3;
+	else if (size == 5)
+		num = 4;
+	else
+		num = 5;
+
+	// ищем победную комбинацию в столбцах
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j <= size - num; j++)
+		{
+			int cell = cells[i][j];
+			if (cell == FREE)
+				continue;
+
+			bool flag = true;
+			for (int k = j; k < num + j; k++)
+			{
+				if (cells[i][k] != cell)
+					flag = false;
+			}
+
+			if (flag == true)
+			{
+				running = false;
+				return true;
+			}
+		}
+	}
+
+	// ищем победную комбинацию в строках
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j <= size - num; j++)
+		{
+			int cell = cells[j][i];
+			if (cell == FREE)
+				continue;
+
+			bool flag = true;
+			for (int k = j; k < num + j; k++)
+			{
+				if (cells[k][i] != cell)
+					flag = false;
+			}
+			if (flag == true)
+			{
+				running = false;
+				return true;
+			}
+				
+		}
+	}
+
+	// ищем победную комбинацию на главной диагонали
+	for (int i = 0; i <= size - num; i++)
+	{
+		int cell = cells[i][i];
+		if (cell == FREE)
+			continue;
+
+		bool flag = true;
+		for (int j = i; j < num + i; j++)
+		{
+			if (cells[j][j] != cell)
+				flag = false;
+		}
+		if (flag == true)
+		{
+			running = false;
+			return true;
+		}
+	}
+
+	// ищем победную комбинацию на побочной диагонали
+	for (int i = 0; i <= size - num; i++)
+	{
+		int cell = cells[i][size - i - 1];
+		if (cell == FREE)
+			continue;
+
+		bool flag = true;
+		for (int j = i; j < num + i; j++)
+		{
+			if (cells[j][size - j - 1] != cell)
+				flag = false;
+		}
+		if (flag == true)
+		{
+			running = false;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool GameWindow::isDraw()
+{
+	if (isWin())
+		return false;
+
+	for (int i = 0; i < size; i++)
+		for (int j = 0; j < size; j++)
+			if (cells[i][j] == FREE)
+				return false;
+	
+	running = false;
+	return true;
 }

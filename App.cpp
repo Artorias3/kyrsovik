@@ -216,13 +216,16 @@ int App::runningOffline()
 				for (int i = 0; i < size; i++)
 					for (int j = 0; j < size; j++)
 						buffer[i][j] = gameWindow->getCell(i, j);
+
+				if (gameWindow->isWin())
+					gameWindow->LoadEndMessage(FPWIN);
 				gameWindow->changeStroke();
 				break;
 			}
 		}
 		else
 		{
-			for (int i = 0; i < 300; i++)
+			for (int i = 0; i < 100; i++)
 			{
 				while (SDL_PollEvent(&event))
 				{
@@ -245,7 +248,7 @@ int App::runningOffline()
 				}
 				gameWindow->Compute();
 				gameWindow->Render();
-				SDL_Delay(7);
+				SDL_Delay(9);
 			}
 
 			int x = -1, y = -1;
@@ -281,8 +284,13 @@ int App::runningOffline()
 
 			buffer[x][y] = SECONDPLAYER;
 			gameWindow->setCell(x, y, SECONDPLAYER);
+			if (gameWindow->isWin())
+				gameWindow->LoadEndMessage(SPWIN);
 			gameWindow->changeStroke();
 		}
+
+		if (gameWindow->isDraw())
+			gameWindow->LoadEndMessage(DRAW);
 		gameWindow->Render();
 	}
 	delete gameWindow;
