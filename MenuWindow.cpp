@@ -34,6 +34,16 @@ void MenuWindow::LoadTextures()
 		buttons[3].LoadImage("Images\\buttons\\ExitButton.png", mainrend);
 		buttons[3].SetRect(50, 260, 50, 200);
 	}
+	else if (menuType == CLIENTORHOSTMENU)
+	{
+		buttons = new Image[2];
+
+		buttons[0].LoadImage("Images\\buttons\\HostButton.png", mainrend);
+		buttons[0].SetRect(50, 50, 50, 200);
+
+		buttons[1].LoadImage("Images\\buttons\\ClientButton.png", mainrend);
+		buttons[1].SetRect(50, 120, 50, 200);
+	}
 	else if (menuType == PAUSEMENU)
 	{
 		buttons = new Image[2];
@@ -66,6 +76,11 @@ int MenuWindow::Compute()
 			else if (buttons[2].isCursorHit(mousepos.x, mousepos.y)) { return LARGEFIELD; }
 			else if (buttons[3].isCursorHit(mousepos.x, mousepos.y)) { running = false; return EXIT; }
 		}
+		else if (menuType == CLIENTORHOSTMENU)
+		{
+			if (buttons[0].isCursorHit(mousepos.x, mousepos.y)) { running = false; return PLAYASHOST; }
+			else if (buttons[1].isCursorHit(mousepos.x, mousepos.y)) { running = false; return PLAYASCLIENT; }
+		}
 		else if (menuType == PAUSEMENU)
 		{
 			if (buttons[0].isCursorHit(mousepos.x, mousepos.y)) { running = false; return CONTINUE; }
@@ -82,6 +97,7 @@ int MenuWindow::Compute()
 			{
 				if (menuType == MAINMENU) buttons[0].LoadImage("Images\\buttons\\OnlineGameButtonLight.png", mainrend);
 				else if (menuType == OPTIONSMENU) buttons[0].LoadImage("Images\\buttons\\SmallFieldButtonLight.png", mainrend);
+				else if (menuType == CLIENTORHOSTMENU) buttons[0].LoadImage("Images\\buttons\\HostButtonLight.png", mainrend);
 				else if (menuType == PAUSEMENU) buttons[0].LoadImage("Images\\buttons\\ContinueButtonLight.png", mainrend);
 
 				buttonLight = 0;
@@ -93,6 +109,7 @@ int MenuWindow::Compute()
 			{
 				if (menuType == MAINMENU) buttons[1].LoadImage("Images\\buttons\\OfflineGameButtonLight.png", mainrend);
 				else if (menuType == OPTIONSMENU) buttons[1].LoadImage("Images\\buttons\\MediumFieldButtonLight.png", mainrend);
+				else if (menuType == CLIENTORHOSTMENU) buttons[1].LoadImage("Images\\buttons\\ClientButtonLight.png", mainrend);
 				else if (menuType == PAUSEMENU) buttons[1].LoadImage("Images\\buttons\\ExitButtonLight.png", mainrend);
 
 				buttonLight = 1;
@@ -125,12 +142,14 @@ int MenuWindow::Compute()
 			{
 				if (menuType == MAINMENU) buttons[0].LoadImage("Images\\buttons\\OnlineGameButton.png", mainrend);
 				else if (menuType == OPTIONSMENU) buttons[0].LoadImage("Images\\buttons\\SmallFieldButton.png", mainrend);
+				else if (menuType == CLIENTORHOSTMENU) buttons[0].LoadImage("Images\\buttons\\HostButton.png", mainrend);
 				else if (menuType == PAUSEMENU) buttons[0].LoadImage("Images\\buttons\\ContinueButton.png", mainrend);
 			}
 			else if (buttonLight == 1)
 			{
 				if (menuType == MAINMENU) buttons[1].LoadImage("Images\\buttons\\OfflineGameButton.png", mainrend);
 				else if (menuType == OPTIONSMENU) buttons[1].LoadImage("Images\\buttons\\MediumFieldButton.png", mainrend);
+				else if (menuType == CLIENTORHOSTMENU) buttons[1].LoadImage("Images\\buttons\\ClientButton.png", mainrend);
 				else if (menuType == PAUSEMENU) buttons[1].LoadImage("Images\\buttons\\ExitButton.png", mainrend);
 			}
 			else if (buttonLight == 2)
@@ -156,7 +175,7 @@ void MenuWindow::Render()
 
 	SDL_RenderCopy(mainrend, buttons[0].GetTexture(), NULL, buttons[0].GetRect());
 	SDL_RenderCopy(mainrend, buttons[1].GetTexture(), NULL, buttons[1].GetRect());
-	if (menuType != PAUSEMENU)
+	if (menuType != PAUSEMENU && menuType != CLIENTORHOSTMENU)
 	{
 		SDL_RenderCopy(mainrend, buttons[2].GetTexture(), NULL, buttons[2].GetRect());
 		SDL_RenderCopy(mainrend, buttons[3].GetTexture(), NULL, buttons[3].GetRect());

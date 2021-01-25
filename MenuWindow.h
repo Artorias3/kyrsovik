@@ -4,12 +4,14 @@
 #define CLOSEWINDOW 0
 #define EXIT 1
 #define ONLINEGAME 2
-#define OFFLINEGAME 3
-#define OPTIONS 4
-#define SMALLFIELD 5
-#define MEDIUMFIELD 6
-#define LARGEFIELD 7
-#define CONTINUE 8
+#define PLAYASHOST 3
+#define PLAYASCLIENT 4 
+#define OFFLINEGAME 5
+#define OPTIONS 6
+#define SMALLFIELD 7
+#define MEDIUMFIELD 8
+#define LARGEFIELD 9
+#define CONTINUE 10
 
 class MenuWindow : public Window
 {

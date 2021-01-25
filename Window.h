@@ -4,7 +4,8 @@
 
 #define MAINMENU 1
 #define OPTIONSMENU 2
-#define PAUSEMENU 3
+#define CLIENTORHOSTMENU 3
+#define PAUSEMENU 4
 
 class Window
 {

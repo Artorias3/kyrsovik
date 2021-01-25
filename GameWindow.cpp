@@ -15,6 +15,7 @@ GameWindow::GameWindow(int _size) : Window()
 
 	cells = nullptr;
 	size = _size;
+	isconnect = false;
 
 	srand(time(NULL));
 	stroke = 1 + rand() % 2;
@@ -45,6 +46,7 @@ GameWindow::GameWindow(int _size, int **_cells, int _stroke)
 
 	cells = nullptr;
 	size = _size;
+	isconnect = true;
 	stroke = _stroke;
 
 	mesh = new Image**[size];
@@ -177,7 +179,7 @@ int GameWindow::Compute()
 		escape = false;
 		return ESCAPE;
 	}
-	if (isklick)
+	if (isklick && isconnect)
 	{
 		isklick = false;
 		for (int i = 0; i < size; i++)
@@ -188,15 +190,14 @@ int GameWindow::Compute()
 				{
 					if (cells[i][j] == FREE)
 					{
-						cells[i][j] = stroke;
+						cells[i][j] = FIRSTPLAYER;
+						lastmove = { i, j };
 						return TURNREADY;
 					}
 				}
 			}
 		}
 	}
-
-
 
 	return 0;
 }

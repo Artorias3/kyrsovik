@@ -28,6 +28,9 @@ private:
 	int **cells;
 	int stroke;
 	int size;
+	SDL_Point lastmove;
+
+	bool isconnect;
 public:
 	GameWindow(int _size);
 	GameWindow(int _size, int **_cells, int _stroke);
@@ -41,8 +44,12 @@ public:
 
 	void setCell(int i, int j, int sign) { if (cells[i][j] == FREE) cells[i][j] = sign; }
 	int getCell(int i, int j) { return cells[i][j]; }
+	void setStroke(int num) { stroke = num; }
 	int getStroke() { return stroke; }
 	void changeStroke();
+	void setConnect() { isconnect = true; }
+	bool getConnect() { return isconnect; }
+	SDL_Point getLastMove() { return lastmove; }
 
 	bool isWin();
 	bool isDraw();
