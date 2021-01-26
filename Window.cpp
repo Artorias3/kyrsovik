@@ -39,9 +39,11 @@ void Window::Event(SDL_Event *event)
 			mousepos.y = event->button.y;
 			isklick = true;
 		}
+		break;
 	case SDL_MOUSEMOTION:
 		mousepos.x = event->motion.x;
 		mousepos.y = event->motion.y;
+		break;
 	case SDL_KEYDOWN:
 		if (event->key.keysym.sym == SDLK_ESCAPE)
 			escape = true;

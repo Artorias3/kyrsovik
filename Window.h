@@ -38,4 +38,8 @@ public:
 	virtual void Init();
 	virtual void Event(SDL_Event *event);
 	virtual void Quit();
+
+	virtual void LoadTextures() = 0;
+	virtual int Compute() = 0;
+	virtual void Render() = 0;
 };

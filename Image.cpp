@@ -8,15 +8,9 @@ bool Image::LoadImage(const char *s, SDL_Renderer *renderer)
 
 	SDL_Surface *tmp = IMG_Load(s);
 	if (!tmp)
-	{
-		cout << IMG_GetError() << endl;
-		return false;
-	}
+		throw "Can't load image.";
 	if (!(image = SDL_CreateTextureFromSurface(renderer, tmp)))
-	{
-		cout << SDL_GetError() << endl;
-		return false;
-	}
+		throw "Can't create texture from image.";
 
 	SDL_FreeSurface(tmp);
 	return true;

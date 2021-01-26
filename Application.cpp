@@ -426,13 +426,13 @@ int Application::runningOnlineAsClient()
 		if ((outputconnection = socket(AF_INET, SOCK_STREAM, NULL)) == INVALID_SOCKET)
 		{
 			WSACleanup();
-			throw "Could not create a listener socket.";
+			throw "Could not create a socket.";
 		}
 		if (connect(outputconnection, (SOCKADDR*)&outputaddres, sizeofaddress) == INVALID_SOCKET)
 		{
 			closesocket(outputconnection);
 			WSACleanup();
-			throw "Can't accept input connection.";
+			throw "Can't connect to host.";
 		}	
 		else
 		{

@@ -269,9 +269,9 @@ bool GameWindow::isWin()
 				continue;
 
 			bool flag = true;
-			for (int k = j; k < num + j; k++)
+			for (int k = 0; k < num; k++)
 			{
-				if (cells[i][k] != cell)
+				if (cells[i][j + k] != cell)
 					flag = false;
 			}
 
@@ -293,9 +293,9 @@ bool GameWindow::isWin()
 				continue;
 
 			bool flag = true;
-			for (int k = j; k < num + j; k++)
+			for (int k = 0; k < num; k++)
 			{
-				if (cells[k][i] != cell)
+				if (cells[j + k][i] != cell)
 					flag = false;
 			}
 			if (flag == true)
@@ -303,47 +303,52 @@ bool GameWindow::isWin()
 				running = false;
 				return true;
 			}
-				
 		}
 	}
 
 	// ищем победную комбинацию на главной диагонали
 	for (int i = 0; i <= size - num; i++)
 	{
-		int cell = cells[i][i];
-		if (cell == FREE)
-			continue;
+		for (int j = 0; j <= size - num; j++)
+		{
+			int cell = cells[i][j];
+			if (cell == FREE)
+				continue;
 
-		bool flag = true;
-		for (int j = i; j < num + i; j++)
-		{
-			if (cells[j][j] != cell)
-				flag = false;
-		}
-		if (flag == true)
-		{
-			running = false;
-			return true;
+			bool flag = true;
+			for (int k = 0; k < num; k++)
+			{
+				if (cells[i + k][j + k] != cell)
+					flag = false;
+			}
+			if (flag == true)
+			{
+				running = false;
+				return true;
+			}
 		}
 	}
 
 	// ищем победную комбинацию на побочной диагонали
 	for (int i = 0; i <= size - num; i++)
 	{
-		int cell = cells[i][size - i - 1];
-		if (cell == FREE)
-			continue;
+		for (int j = size - 1; j >= num - 1; j--)
+		{
+			int cell = cells[i][j];
+			if (cell == FREE)
+				continue;
 
-		bool flag = true;
-		for (int j = i; j < num + i; j++)
-		{
-			if (cells[j][size - j - 1] != cell)
-				flag = false;
-		}
-		if (flag == true)
-		{
-			running = false;
-			return true;
+			bool flag = true;
+			for (int k = 0; k < num; k++)
+			{
+				if (cells[i + k][j - k] != cell)
+					flag = false;
+			}
+			if (flag == true)
+			{
+				running = false;
+				return true;
+			}
 		}
 	}
 
